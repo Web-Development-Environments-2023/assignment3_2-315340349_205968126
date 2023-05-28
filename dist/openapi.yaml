@@ -1,28 +1,31 @@
+---
 openapi: 3.0.0
 info:
-  title: Recipes api
-  description: API for recipes project
-  version: 1.0.1
+  title: Grandma's Recipes Website API
+  description: This is an API for Grandma's Recipes website project
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.0
 servers:
 # local:
 - url: "http://127.0.0.1:3000"
 # remote:
-# - url: "http://132.72.65.211"
-  description: SwaggerHub API Auto Mocking hey
+# - url: "http://132.73.84.132"
 tags:
 - name: Auth
-  description: All authentication related routes
-- name: Users
-  description: All the user's personal app info
+  description: Operations regarding registration and login/logout
 - name: Recipes
-  description: All reciepes general info
+  description: Operations for getting, setting and uploading recipies
+- name: User
+  description: User operations
 paths:
   /register:
     post:
       tags:
       - Auth
       summary: A new user from the client is added to the server
-      description: A JSON object contains all the details about the new user.
+      description: A JSON object contains all the details about the user.
       requestBody:
         description: Inventory item to add
         content:
@@ -33,14 +36,15 @@ paths:
       responses:
         "201":
           description: A new user has been added
-        "400":
-          description: wrong input parameters
+        "401":
+          description: Wrong input parameters
+        "402":
+          description: Username taken
   /login:
     post:
       tags:
       - Auth
-      summary: Login an exist user
-      description: An exist user login to the system
+      summary: Lets the user log into the website using his credentials
       requestBody:
         content:
           application/json:
@@ -49,17 +53,19 @@ paths:
         required: true
       responses:
         "200":
-          description: |
-            User was found in the DB and authenitcated successfully. The session ID is returned in a cookie named `session`.  You should include this cookie in subsequent requests
-          headers:
+          description: Successful login
+        # DK
+        headers:
             Set-Cookie:
               style: simple
               explode: false
               schema:
                 type: string
                 example: session=87s97sdhgf279293f8w0e9
+        # END
         "401":
-          description: Authentication failed
+          description: incorrect username or password
+  # DK
   /logout:
     post:
       tags:
@@ -68,6 +74,136 @@ paths:
       responses:
         "200":
           description: "the user has ben successfully logged out"
+  # END
+  /recipes/getRandoms:
+    get:
+      tags:
+      - Recipes
+      summary: Retrives 3 random recipes
+      description: An array containing 3 Json object representing 3 recipes
+      responses:
+        "200":
+          description: 3 randoms recpies have been retrived
+          content:
+            application/json:
+              schema:
+                maxLength: 3
+                type: array
+                items:
+                  $ref: '#/components/schemas/RecpieDescription'
+        "403":
+          description: "Could not retrieve the recipes, please try again"
+  /recipes/{recipeId}: #DK - getRecipeDescription:
+    get:
+      tags:
+      - Recipes
+      summary: gets recepie from the DB
+      description: get one recipe by ID from the DB
+      # DK
+      parameters:
+      - name: recipeId
+        in: path
+        description: recipe's id
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+      # END
+      responses:
+        "200":
+          description: one recepie has been retrived successfuly
+          content:
+            application/json:
+              schema:
+                # type: array
+                items:
+                  $ref: '#/components/schemas/RecpieDescription'
+        "404":
+          description: Could not find the recipe, please try again
+  # DK - its duplicate
+  # /recipes/searchForRecepie:
+  #   get:
+  #     tags:
+  #     - Recipes
+  #     summary: gets recepie from the DB
+  #     description: get one recipe by ID from the DB
+  #     responses:
+  #       "200":
+  #         description: one recepie has been retrived successfuly
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: array
+  #               items:
+  #                 $ref: '#/components/schemas/RecepieView'
+  #       "401":
+  #         description: "Could not find the recipe, please try again"
+  /users/lastWatched:
+    get:
+      tags:
+      - Users
+      summary: Gets 3 last watched recipes of the user
+      description: The user will be able to see his 3 last watched recipes
+      responses:
+        "200":
+          description: 3 last watched recipes by the user have been retrived
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RecepieView'
+        "404":
+          description: "Could not retrieve the recipes, please try again"
+      security:
+      - cookieAuth: []  
+    put:
+      tags:
+      - Users
+      summary: update the last watched recipes list of the user
+      description: update the last watched recipes list of the user by username
+      responses:
+        "200":
+          description: the recepies list has been updated
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RecepieView'
+      security:
+      - cookieAuth: []
+  /users/addRecepie:
+    post:
+      tags:
+      - Recipes
+      summary: user creating new recepie
+      description: the users recepie adds to the recipes in the DB
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecepieView'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/RecepieView'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RecepieView'
+        required: true
+      responses:
+        "200":
+          description: 3 last watched recipes by the user have been returned
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RecepieView'
+      security:
+      - cookieAuth: []
+  # /users/recipes/getFavorites:
   /users/favorites:
     get:
       tags:
@@ -76,17 +212,18 @@ paths:
       description: Get an array of recipes that were saved by a specific user
       responses:
         "200":
-          description: data about the user's favorites recipes returned
+          description: successfully retrived favorite recipes
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/RecipePreview'
+                  $ref: '#/components/schemas/RecepieView'
         "401":
-          description: user is not authorized
+          description: Could not retrieve the recipes, please try again
       security:
       - cookieAuth: []
+    # DK
     post:
       tags:
       - Users
@@ -109,49 +246,45 @@ paths:
           description: user is not authorized
       security:
       - cookieAuth: []
-  /recipes/{recipeId}:
+    # END
+  /users/getMyRecepies:
     get:
       tags:
-      - Recipes
-      summary: Return preview details on recipe by his ID
-      description: Return preview details on recipe by his ID
-      parameters:
-      - name: recipeId
-        in: path
-        description: recipe's id
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: integer
+      - Users
+      summary: get all the users' recipes
+      description: The use will be able to see all his recipes
       responses:
         "200":
-          description: data about the recipe
+          description: successfully retrived the user's recipes
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RecipePreview'
-        "404":
-          description: recipeId is not exists
+                type: array
+                items:
+                  $ref: '#/components/schemas/RecepieView'
+        "401":
+          description: "Could not retrieve the recipes, please try again"
+      security:
+      - cookieAuth: []
 components:
   schemas:
     User:
       type: object
       properties:
-        username:
+        userName:
           maxLength: 8
           minLength: 3
           type: string
-          description: username conatins between 3 to 8 letters only
+          description: username contains 3 to 8 letters only
           example: my_name
-        firstname:
+        firstName:
           type: string
           description: user's first name
           example: my_first_name
-        lastname:
+        lastName:
           type: string
           description: user's last name
-          example: my_last_name
+          example: levi
         country:
           type: string
           description: user's country
@@ -160,71 +293,108 @@ components:
           maxLength: 10
           minLength: 5
           type: string
-          description: password conatins between 5 to 10 chars, at least one of them
-            is a number and a special char
+          description: |
+            password contains between 5 to 10 chars, at least one of them is a number and special char
           format: password
-          example: my_name@12
+          example: my_name@55
         email:
-          pattern: email
+          pattern: email #DK
           type: string
           description: user's email
-          example: my_name12@gmail.com
-        # image-url:
-        #   pattern: URL
-        #   type: string
-        #   description: URL for the user's image
-        #   example: https://cloudinary.com/
+          # format: email # DK
+          example: my_name555@gmail.com
+          # DK
+          # image-url:
+          #   pattern: URL
+          #   type: string
+          #   description: URL for the user's image
+          #   example: https://cloudinary.com/
+          
+        # viewedRecipes:
+        #   type: array
+        #   items:
+        #     $ref: '#/components/schemas/RecpieDescription'
+        # favoriteRecipes:
+        #   type: array
+        #   items:
+        #     $ref: '#/components/schemas/RecpieDescription'
+        # lastWatchedRecipes:
+        #   maxLength: 3
+        #   type: array
+        #   items:
+        #     $ref: '#/components/schemas/RecpieDescription'
+        # END
       description: Model containing user info
     LoginScheme:
       type: object
       properties:
-        username:
+        userName:
           maxLength: 8
           minLength: 3
           type: string
-          description: username conatins letters only
+          description: username contains 3 to 8 letters only
         password:
           maxLength: 10
           minLength: 5
-          description: password conatins at least one number and one special char
+          # type: string
+          description: |
+            password contains between 5 to 10 chars, at least one number and special char
           format: password
-      example:
-        username: my_name
-        password: my_name@12
-    RecipePreview:
+        example:
+          username: my_name
+          password: my_name@55
+    RecpieDescription: # DK - RecipePreview
       type: object
       properties:
         id:
-          type: integer
-          description: recipe identifier
-          example: 102
-        title:
           type: string
-          description: recipe name
-          example: Simple Macaroni and Cheese
+          example: "209"
         image:
           type: string
-          description: recipe image
-          format: URL
-          example: https://spoonacular.com/recipeimages/655455-566x370.jpg
-        readyInMinutes:
+          format: URL # path
+          example: https://medias.hashulchan.co.il/www/uploads/2022/04/IMG_9569-750x500-1651048432.jpg
+        title:
+          type: string
+          example: Potato carpaccio
+        coockingTime: # DK -readyInMinutes
           type: integer
-          description: the time takes to make this recipe
-          example: 45
+          description: the time in minutes takes to make this recipe # DK
+          format: minutes
+          example: 20
         popularity:
           type: integer
-          description: how many likes got this recipe
-          example: 5987
-        vegetarian:
+          description: how many likes this recipe got # DK
+          example: 302
+        isVegan: # DK - vegetarian
           type: boolean
-          description: indication if the recipe is vegetarian
-          example: false
-        vegan:
+          description: does the recipe vegetarian
+          example: true
+        # vegan:
+        #   type: boolean
+        #   description: indication if the recipe is vegan
+        #   example: false
+        isGlutenFree:
           type: boolean
-          description: indication if the recipe is vegan
+          description: does the recipe gluten free
           example: false
-        glutenFree:
-          type: boolean
-          description: indication if the recipe is gluten free
-          example: false
-  
+        url: # DK - reqired?
+          type: string
+          format: url
+          example: |
+            'https://www.hashulchan.co.il/%D7%9E%D7%AA%D7%9B%D7%95%D7%A0%D7%99%D7%9D/%d7%a7%d7%a8%d7%a4%d7%a6%d7%95-%d7%aa%d7%a4%d7%95%d7%97-%d7%90%d7%93%d7%9e%d7%94/'
+      description: Model containing a recpie description
+    RecepieView: # DK - may be redundent
+      type: object
+      properties:
+        recepieDescription:
+          $ref: '#/components/schemas/RecpieDescription'
+        ingridiants:
+          type: object
+          additionalProperties:
+            type: integer
+        cookingInstuctions:
+          type: string
+        dishesNum:
+          type: integer
+          example: 4
+      description: Modal containing the recepie

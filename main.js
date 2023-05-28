@@ -38,18 +38,21 @@ app.get("/",function(req,res)
 
 });
 
+/* DK - enable CORS support in the Express application, allowing requests from any origin
+   and handling preflight requests. This configuration is useful when developing APIs
+    or web applications that need to be accessed by clients running on different domains.*/
 // app.use(cors());
 // app.options("*", cors());
 
 const corsConfig = {
-  origin: true,
-  credentials: true
+  origin: true,     // DK - Allows requests from any origin.
+  credentials: true // DK - Specifies that the server can receive and send credentials (such as cookies, authorization headers, or TLS client certificates) in cross-origin requests.
 };
 
 app.use(cors(corsConfig));
 app.options("*", cors(corsConfig));
 
-var port = process.env.PORT || "80"; //local=3000 remote=80
+var port = process.env.PORT || "3000"; //local=3000 remote=80
 //#endregion
 const user = require("./routes/user");
 const recipes = require("./routes/recipes");
@@ -82,6 +85,7 @@ app.use("/recipes", recipes);
 app.use(auth);
 
 // Default router
+// DK - handle errors that occur during the processing of incoming requests.
 app.use(function (err, req, res, next) {
   console.error(err);
   res.status(err.status || 500).send({ message: err.message, success: false });
