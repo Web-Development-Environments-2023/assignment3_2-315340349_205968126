@@ -5,6 +5,15 @@ const recipes_utils = require("./utils/recipes_utils");
 router.get("/", (req, res) => res.send("im here"));
 
 
+router.get("/getRandoms", async (req, res, next) => {
+  try {
+    const random_recipe = await recipes_utils.getRandomRecipe();
+    res.status(200).send(random_recipe);
+  } catch (error) {
+    next(error);
+  }
+});
+
 /**
  * This path returns a full details of a recipe by its id
  */
@@ -17,4 +26,7 @@ router.get("/:recipeId", async (req, res, next) => {
   }
 });
 
+
+
 module.exports = router;
+

@@ -11,8 +11,7 @@ const api_key = process.env.spooncular_apiKey;
 
 
 async function getRecipeInformation(recipe_id) {
-    console.log("getRecipeInformation");
-    return await axios.get(`${api_domain}/${recipe_id}/information?apiKey${api_key}`, {
+    return await axios.get(`${api_domain}/${recipe_id}/information?`, {
         params: {
             includeNutrition: false,
             apiKey: process.env.spooncular_apiKey
@@ -39,8 +38,38 @@ async function getRecipeDetails(recipe_id) {
     }
 }
 
+async function getRandomRecipe() {
+    let random_recipes = await axios.get(`${api_domain}/random?number=3&apiKey=${api_key}`, {
+      params: {
+        apiKey: process.env.spooncular_apiKey
+      }
+    });
+  
+    let random_recipes_info = [];
+  
+    for (let recipe of random_recipes.data.recipes) {
+      let { id, title, readyInMinutes, image, aggregateLikes, vegan, vegetarian, glutenFree } = recipe;
+  
+      let recipe_info = {
+        id: id,
+        title: title,
+        readyInMinutes: readyInMinutes,
+        image: image,
+        popularity: aggregateLikes,
+        vegan: vegan,
+        vegetarian: vegetarian,
+        glutenFree: glutenFree
+      };
+  
+      random_recipes_info.push(recipe_info);
+    }
+  
+    return random_recipes_info;
+  }
 
 
+
+exports.getRandomRecipe = getRandomRecipe;
 exports.getRecipeDetails = getRecipeDetails;
 
 
