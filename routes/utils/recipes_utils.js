@@ -1,5 +1,6 @@
 const axios = require("axios");
 const api_domain = "https://api.spoonacular.com/recipes";
+const api_key = process.env.spooncular_apiKey;
 
 
 
@@ -10,7 +11,8 @@ const api_domain = "https://api.spoonacular.com/recipes";
 
 
 async function getRecipeInformation(recipe_id) {
-    return await axios.get(`${api_domain}/${recipe_id}/information`, {
+    console.log("getRecipeInformation");
+    return await axios.get(`${api_domain}/${recipe_id}/information?apiKey${api_key}`, {
         params: {
             includeNutrition: false,
             apiKey: process.env.spooncular_apiKey
