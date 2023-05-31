@@ -1,6 +1,6 @@
 const axios = require("axios");
 const api_domain = "https://api.spoonacular.com/recipes";
-const api_key = process.env.spooncular_apiKey;
+
 
 
 
@@ -38,15 +38,16 @@ async function getRecipeDetails(recipe_id) {
     }
 }
 
+//get 3 random recipes from spooncular
 async function getRandomRecipe() {
-    let random_recipes = await axios.get(`${api_domain}/random?number=3&apiKey=${api_key}`, {
+    let random_recipes = await axios.get(`${api_domain}/random?number=3`, {
       params: {
         apiKey: process.env.spooncular_apiKey
       }
     });
   
     let random_recipes_info = [];
-  
+    // gets only the relvant data from each recipe
     for (let recipe of random_recipes.data.recipes) {
       let { id, title, readyInMinutes, image, aggregateLikes, vegan, vegetarian, glutenFree } = recipe;
   
@@ -67,8 +68,51 @@ async function getRandomRecipe() {
     return random_recipes_info;
   }
 
+  //searches for recipes by filters and query
+  async function searchRecipes(filters) {
+    let recipes = await axios.get(`${api_domain}/complexSearch`, {
+        params: {
+            instructionsRequired: true,
+            apiKey: process.env.spooncular_apiKey,
+            query: filters.query,
+            cuisine: filters.cuisine,
+            diet: filters.diet,
+            intolerances: filters.intolerance, 
+            number: filters.numOfRecipes,
+        }
+    });
+
+    //gets the details of each recipe, since complexSearch dosent return all the details we are using getRecipeDetails for that.
+    let search_recipes = [];
+    for (let recipe of recipes.data.results) {
+        let { id } = recipe;
+        let recipeDetails = await getRecipeDetails(id);
+        let { title, readyInMinutes, image, aggregateLikes, vegan, vegetarian, glutenFree } = recipeDetails;
+
+        let recipe_info = {
+            id: id,
+            title: title,
+            readyInMinutes: readyInMinutes,
+            image: image,
+            popularity: aggregateLikes,
+            vegan: vegan,
+            vegetarian: vegetarian,
+            glutenFree: glutenFree
+        };
+
+        search_recipes.push(recipe_info);
+    }
+
+    return search_recipes;
+}
 
 
+
+
+
+
+
+exports.searchRecipes = searchRecipes;
 exports.getRandomRecipe = getRandomRecipe;
 exports.getRecipeDetails = getRecipeDetails;
 
