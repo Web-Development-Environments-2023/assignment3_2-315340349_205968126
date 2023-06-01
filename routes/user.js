@@ -27,7 +27,7 @@ router.use(async function (req, res, next) {
 router.post('/favorites', async (req,res,next) => {
   try{
     const user_id = req.session.user_id;
-    const recipe_id = req.body.recipeId;
+    const recipe_id = req.body.recipe_id;
     await user_utils.markAsFavorite(user_id,recipe_id);
     res.status(200).send("The Recipe successfully saved as favorite");
     } catch(error){
@@ -45,9 +45,25 @@ router.get('/favorites', async (req,res,next) => {
     const recipes_id = await user_utils.getFavoriteRecipes(user_id);
     let recipes_id_array = [];
     recipes_id.map((element) => recipes_id_array.push(element.recipe_id)); //extracting the recipe ids into array
-    // const results = await recipe_utils.getRecipesPreview(recipes_id_array);
-    // DK - I think there might be a mistake on the up line, the right line:
-    const results = await recipe_utils.getRecipeDetails(recipes_id_array);
+    // const results = await recipe_utils.getRecipeDetails(recipes_id_array);
+    const results = await Promise.all(recipes_id_array.map((element) => recipe_utils.getRecipeDetails(element)));
+    res.status(200).send(results);
+  } catch(error){
+    next(error); 
+  }
+});
+
+/**
+ * This path returns the last watched recipes of the logged-in user
+ */
+router.get('/lastWatched', async (req,res,next) => {
+  try{
+    const user_id = req.session.user_id;
+    let viewed_recipes = {};
+    const recipes_id = await user_utils.getLastWatchedRecipes(user_id);
+    let recipes_id_array = [];
+    recipes_id.map((element) => recipes_id_array.push(element.recipe_id)); //extracting the recipe ids into array
+    const results = await Promise.all(recipes_id_array.map((element) => recipe_utils.getRecipeDetails(element)));
     res.status(200).send(results);
   } catch(error){
     next(error); 

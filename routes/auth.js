@@ -30,7 +30,8 @@ router.post("/Register", async (req, res, next) => {
       parseInt(process.env.bcrypt_saltRounds)
     );
     await DButils.execQuery(
-      `INSERT INTO users VALUES ('${user_details.username}', '${user_details.firstname}', '${user_details.lastname}',
+      `INSERT INTO users (username, first_name, last_name, country, password, email)
+       VALUES ('${user_details.username}', '${user_details.firstname}', '${user_details.lastname}',
       '${user_details.country}', '${hash_password}', '${user_details.email}')`
     );
     res.status(201).send({ message: "user created", success: true });
@@ -38,6 +39,35 @@ router.post("/Register", async (req, res, next) => {
     next(error);
   }
 });
+
+// router.post("/Login", async (req, res, next) => {
+//   try {
+//     // check that username exists
+//     const users = await DButils.execQuery("SELECT username FROM users");
+//     if (!users.find((x) => x.username === req.body.username))
+//       throw { status: 401, message: "Username or Password incorrect" };
+
+//     // check that the password is correct
+//     const user = (
+//       await DButils.execQuery(
+//         `SELECT * FROM users WHERE username = '${req.body.username}'`
+//       )
+//     )[0];
+
+//     if (!bcrypt.compareSync(req.body.password, user.password)) {
+//       throw { status: 401, message: "Username or Password incorrect" };
+//     }
+
+//     // Set cookie
+//     req.session.user_id = user.user_id;
+
+
+//     // return cookie
+//     res.status(200).send({ message: "login succeeded", success: true });
+//   } catch (error) {
+//     next(error);
+//   }
+// });
 
 router.post("/Login", async (req, res, next) => {
   try {
