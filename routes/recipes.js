@@ -5,6 +5,15 @@ const recipes_utils = require("./utils/recipes_utils");
 router.get("/", (req, res) => res.send("im here"));
 
 
+router.get("/getRecipeFullData/:recipeId", async (req, res, next) => {
+  try {
+    const recipe = await recipes_utils.getRecipeFullData(req.params.recipeId);
+    res.send(recipe);
+  } catch (error) {
+    next(error);
+  }
+});
+
 //route for getting recipes, before we send requests to spooncular we check if the request is being forwared properly so we wont waste cradintels on spooncular
 router.get("/searchRecipes", async (req, res, next) => {
   try {
@@ -56,6 +65,7 @@ router.get("/:recipeId", async (req, res, next) => {
     next(error);
   }
 });
+
 
 
 module.exports = router;

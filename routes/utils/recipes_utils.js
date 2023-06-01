@@ -19,8 +19,75 @@ async function getRecipeInformation(recipe_id) {
     });
 }
 
+async function getRecipeIngredients(recipe_id) {
+  let ingredients_info = await axios.get(`${api_domain}/${recipe_id}/ingredientWidget.json?`, {
+    params: {
+      apiKey: process.env.spooncular_apiKey
+    }
+  });
+
+  let ingredients_list = [];
+  for (let ingredient of ingredients_info.data.ingredients) {
+    let name = ingredient.name;
+    let metricUnit = ingredient.amount.metric.unit;
+    let metricValue = ingredient.amount.metric.value;
+
+    let ingredientPair = {
+      ingredient: name,
+      amount: {
+        metric: {
+          unit: metricUnit,
+          value: metricValue
+        }
+      }
+    };
+
+    ingredients_list.push(ingredientPair);
+  }
+
+  return ingredients_list;
+}
+
+async function getRecipeStep(recipe_id) {
+  let recipe_steps = await axios.get(`${api_domain}/${recipe_id}/analyzedInstructions?`, {
+    params: {
+      apiKey: process.env.spooncular_apiKey
+    }
+  });
+
+  let steps_list = [];
+  let steps = recipe_steps.data[0].steps;
+  for (let step of steps) {
+    let stepNumber = step.number;
+    let instruction = step.step;
+
+    let stepPair = {
+      stepNumber,
+      instruction
+    };
+
+    steps_list.push(stepPair);
+  }
+
+  return steps_list;
+}
+
+async function getRecipeFullData(recipe_id) {
+  let recipeInfo = await getRecipeInformation(recipe_id);
+  let ingredients = await getRecipeIngredients(recipe_id);
+  let steps = await getRecipeStep(recipe_id);
+
+  let fullData = {
+    recipeInfo: await getRecipePreviewData(recipeInfo.data),
+    ingredients,
+    steps
+  };
+
+  return fullData;
+}
+
 async function getRecipePreviewData(recipe_data) {
-  let { id, title, readyInMinutes, image, aggregateLikes, vegan, vegetarian, glutenFree } = recipe_data;
+  let { id, title, readyInMinutes, image, aggregateLikes, vegan, vegetarian, glutenFree, servings } = recipe_data;
 
     return {
         id: id,
@@ -31,6 +98,8 @@ async function getRecipePreviewData(recipe_data) {
         vegan: vegan,
         vegetarian: vegetarian,
         glutenFree: glutenFree,
+        servings: servings
+        
         
     }
 }
@@ -101,8 +170,8 @@ async function getRandomRecipe() {
     //gets the details of each recipe, since complexSearch dosent return all the details we are using getRecipeDetails for that.
     let search_recipes = [];
     for (let recipe of recipes.data.results) {
-        // let { id } = recipe;
-        // let recipeDetails = await getRecipeDetails(id);
+        let { id } = recipe;
+        let recipeDetails = await getRecipeDetails(id);
         // let { title, readyInMinutes, image, aggregateLikes, vegan, vegetarian, glutenFree } = recipeDetails;
 
         // let recipe_info = {
@@ -117,7 +186,7 @@ async function getRandomRecipe() {
         // };
 
         // search_recipes.push(recipe_info);
-        search_recipes.push(await getRecipePreviewData(recipe));
+        search_recipes.push(await getRecipePreviewData(recipeDetails));
     }
 
     return search_recipes;
@@ -129,6 +198,8 @@ async function getRandomRecipe() {
 
 
 
+
+exports.getRecipeFullData = getRecipeFullData;
 exports.searchRecipes = searchRecipes;
 exports.getRandomRecipe = getRandomRecipe;
 exports.getRecipeDetails = getRecipeDetails;
