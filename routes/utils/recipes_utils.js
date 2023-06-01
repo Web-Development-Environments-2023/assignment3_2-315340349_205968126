@@ -3,22 +3,22 @@ const api_domain = "https://api.spoonacular.com/recipes";
 
 
 
-
 /**
  * Get recipes list from spooncular response and extract the relevant recipe data for preview
  * @param {*} recipes_info 
  */
 
-
+// get recipe information from spooncular response
 async function getRecipeInformation(recipe_id) {
-    return await axios.get(`${api_domain}/${recipe_id}/information?`, {
-        params: {
-            includeNutrition: false,
-            apiKey: process.env.spooncular_apiKey
-        }
-    });
+  return await axios.get(`${api_domain}/${recipe_id}/information?`, {
+    params: {
+      includeNutrition: false,
+      apiKey: process.env.spooncular_apiKey
+    }
+  });
 }
 
+// get recipe ingredients from spooncular response
 async function getRecipeIngredients(recipe_id) {
   let ingredients_info = await axios.get(`${api_domain}/${recipe_id}/ingredientWidget.json?`, {
     params: {
@@ -48,6 +48,7 @@ async function getRecipeIngredients(recipe_id) {
   return ingredients_list;
 }
 
+// get recipe steps from spooncular response
 async function getRecipeStep(recipe_id) {
   let recipe_steps = await axios.get(`${api_domain}/${recipe_id}/analyzedInstructions?`, {
     params: {
@@ -72,6 +73,7 @@ async function getRecipeStep(recipe_id) {
   return steps_list;
 }
 
+// get full recipe data from spooncular response
 async function getRecipeFullData(recipe_id) {
   let recipeInfo = await getRecipeInformation(recipe_id);
   let ingredients = await getRecipeIngredients(recipe_id);
@@ -86,117 +88,72 @@ async function getRecipeFullData(recipe_id) {
   return fullData;
 }
 
+// get recipe preview data from spooncular response
 async function getRecipePreviewData(recipe_data) {
   let { id, title, readyInMinutes, image, aggregateLikes, vegan, vegetarian, glutenFree, servings } = recipe_data;
 
-    return {
-        id: id,
-        title: title,
-        readyInMinutes: readyInMinutes,
-        image: image,
-        popularity: aggregateLikes,
-        vegan: vegan,
-        vegetarian: vegetarian,
-        glutenFree: glutenFree,
-        servings: servings
-        
-        
-    }
+  return {
+    id: id,
+    title: title,
+    readyInMinutes: readyInMinutes,
+    image: image,
+    popularity: aggregateLikes,
+    vegan: vegan,
+    vegetarian: vegetarian,
+    glutenFree: glutenFree,
+    servings: servings
+
+
+  }
 }
 
+//get recipe details by id
 async function getRecipeDetails(recipe_id) {
-    let recipe_info = await getRecipeInformation(recipe_id);
-    // let { id, title, readyInMinutes, image, aggregateLikes, vegan, vegetarian, glutenFree } = recipe_info.data;
-
-    // return {
-    //     id: id,
-    //     title: title,
-    //     readyInMinutes: readyInMinutes,
-    //     image: image,
-    //     popularity: aggregateLikes,
-    //     vegan: vegan,
-    //     vegetarian: vegetarian,
-    //     glutenFree: glutenFree,
-        
-    // }
-    return await getRecipePreviewData(recipe_info.data);
+  let recipe_info = await getRecipeInformation(recipe_id);
+  return await getRecipePreviewData(recipe_info.data);
 }
 
 //get 3 random recipes from spooncular
 async function getRandomRecipe() {
-    let random_recipes = await axios.get(`${api_domain}/random?number=3`, {
-      params: {
-        apiKey: process.env.spooncular_apiKey
-      }
-    });
-  
-    let random_recipes_info = [];
-    // gets only the relvant data from each recipe
-    for (let recipe of random_recipes.data.recipes) {
-      // let { id, title, readyInMinutes, image, aggregateLikes, vegan, vegetarian, glutenFree } = recipe;
-  
-      // let recipe_info = {
-      //   id: id,
-      //   title: title,
-      //   readyInMinutes: readyInMinutes,
-      //   image: image,
-      //   popularity: aggregateLikes,
-      //   vegan: vegan,
-      //   vegetarian: vegetarian,
-      //   glutenFree: glutenFree
-      // };
-  
-      // random_recipes_info.push(recipe_info);
-      random_recipes_info.push(await getRecipePreviewData(recipe));
+  let random_recipes = await axios.get(`${api_domain}/random?number=3`, {
+    params: {
+      apiKey: process.env.spooncular_apiKey
     }
-  
-    return random_recipes_info;
+  });
+
+  let random_recipes_info = [];
+  // gets only the relvant data from each recipe
+  for (let recipe of random_recipes.data.recipes) {
+    random_recipes_info.push(await getRecipePreviewData(recipe));
   }
 
-  //searches for recipes by filters and query
-  async function searchRecipes(filters) {
-    let recipes = await axios.get(`${api_domain}/complexSearch`, {
-        params: {
-            instructionsRequired: true,
-            apiKey: process.env.spooncular_apiKey,
-            query: filters.query,
-            cuisine: filters.cuisine,
-            diet: filters.diet,
-            intolerances: filters.intolerance, 
-            number: filters.numOfRecipes,
-        }
-    });
-
-    //gets the details of each recipe, since complexSearch dosent return all the details we are using getRecipeDetails for that.
-    let search_recipes = [];
-    for (let recipe of recipes.data.results) {
-        let { id } = recipe;
-        let recipeDetails = await getRecipeDetails(id);
-        // let { title, readyInMinutes, image, aggregateLikes, vegan, vegetarian, glutenFree } = recipeDetails;
-
-        // let recipe_info = {
-        //     id: id,
-        //     title: title,
-        //     readyInMinutes: readyInMinutes,
-        //     image: image,
-        //     popularity: aggregateLikes,
-        //     vegan: vegan,
-        //     vegetarian: vegetarian,
-        //     glutenFree: glutenFree
-        // };
-
-        // search_recipes.push(recipe_info);
-        search_recipes.push(await getRecipePreviewData(recipeDetails));
-    }
-
-    return search_recipes;
+  return random_recipes_info;
 }
 
+//searches for recipes by filters and query
+async function searchRecipes(filters) {
+  let recipes = await axios.get(`${api_domain}/complexSearch`, {
+    params: {
+      instructionsRequired: true,
+      apiKey: process.env.spooncular_apiKey,
+      query: filters.query,
+      cuisine: filters.cuisine,
+      diet: filters.diet,
+      intolerances: filters.intolerance,
+      number: filters.numOfRecipes,
+    }
+  });
 
+  //gets the details of each recipe, since complexSearch dosent return all the details we are using getRecipeDetails for that.
+  let search_recipes = [];
+  for (let recipe of recipes.data.results) {
+    let { id } = recipe;
+    let recipeDetails = await getRecipeDetails(id);
+    search_recipes.push(await getRecipePreviewData(recipeDetails));
+  }
 
-
-
-
+  return search_recipes;
+}
 
 
 exports.getRecipeFullData = getRecipeFullData;

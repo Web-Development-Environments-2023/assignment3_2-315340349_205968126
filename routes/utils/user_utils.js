@@ -10,22 +10,31 @@ async function AddRecipe(user_id, body) {
     const recipe_instructions = body.steps;
     
     await DButils.execQuery(`INSERT INTO Recipe (name, time_to_cook, vegan, gluten_free, instructions, number_of_dishes, popularity, image) VALUES 
-      ('${recipe_info.recipeName}', '${recipe_info.recipeTime}', '${recipe_info.recipeVegan}', '${recipe_info.recipeGlutenfree}', 
-      '${recipe_info.recipeInstructions}', '${recipe_info.recipeServings}', '${recipe_info.recipeLikes}', '${recipe_info.recipeImage}')`);
+      ('${recipe_info.name}', '${recipe_info.cooking_time}', '${recipe_info.vegan}', '${recipe_info.glutenFree}', 
+      '${recipe_info.instructions}', '${recipe_info.servings}', '${recipe_info.likes}', '${recipe_info.image}')`);
       
     const insertedRecipeId = (await DButils.execQuery('SELECT LAST_INSERT_ID() AS recipe_id'))[0].recipe_id;
     
     await DButils.execQuery(`INSERT INTO MyRecipes (user_id, recipe_id) VALUES ('${user_id}', ${insertedRecipeId})`);
     
     for (const ingredient of recipe_ingredients) {
-      await DButils.execQuery(`INSERT INTO Ingredients (ingredient_name) VALUES ('${ingredient.name}')`);
+      const existingIngredient = await DButils.execQuery(`SELECT * FROM Ingredients WHERE ingredient_name = '${ingredient.name}'`);
+      if (existingIngredient.length == 0) {
+        await DButils.execQuery(`INSERT INTO Ingredients (ingredient_name) VALUES ('${ingredient.name}')`);
+      }
       const ingredientID = (await DButils.execQuery(`SELECT ingredient_id FROM Ingredients WHERE ingredient_name = '${ingredient.name}'`))[0].ingredient_id;
       await DButils.execQuery(`INSERT INTO RecipeIngredients (recipe_id, ingredient_id, unit, value) VALUES 
-        ('${insertedRecipeId}', '${ingredientID}', '${ingredient.amount.metric.unit}', '${ingredient.amount.metric.value}')`);
+                                  ('${insertedRecipeId}', '${ingredientID}', '${ingredient.amount.metric.unit}', '${ingredient.amount.metric.value}')`);
     }
+    // for (const ingredient of recipe_ingredients) {
+    //   await DButils.execQuery(`INSERT INTO Ingredients (ingredient_name) VALUES ('${ingredient.name}')`);
+    //   const ingredientID = (await DButils.execQuery(`SELECT ingredient_id FROM Ingredients WHERE ingredient_name = '${ingredient.name}'`))[0].ingredient_id;
+    //   await DButils.execQuery(`INSERT INTO RecipeIngredients (recipe_id, ingredient_id, unit, value) VALUES 
+    //     ('${insertedRecipeId}', '${ingredientID}', '${ingredient.amount.metric.unit}', '${ingredient.amount.metric.value}')`);
+    // }
     
     for (const step of recipe_instructions) {
-      await DButils.execQuery(`INSERT INTO Steps (recipe_id, step_number, instruction) VALUES 
+      await DButils.execQuery(`INSERT INTO Steps (recipe_id, step_number, step_instruction) VALUES 
         ('${insertedRecipeId}', '${step.stepNumber}', '${step.instruction}')`);
     }
   }
@@ -45,7 +54,21 @@ async function getLastWatchedRecipes(user_id){
     return recipes_id;
 }
 
+async function getMyRecipes(user_id) {
+  const userRecipes = await DButils.execQuery(`SELECT * FROM Recipe WHERE recipe_id IN
+                           (SELECT recipe_id FROM MyRecipes WHERE user_id = '${user_id}')`);
+  return userRecipes;
+}
+
+async function getFamilyRecipes(user_id) {
+  const userRecipes = await DButils.execQuery(`SELECT * FROM Recipe WHERE recipe_id IN
+                           (SELECT recipe_id FROM familyRecipes WHERE user_id = '${user_id}')`);
+  return userRecipes;
+}
+
 exports.AddRecipe = AddRecipe;
 exports.markAsFavorite = markAsFavorite;
 exports.getFavoriteRecipes = getFavoriteRecipes;
 exports.getLastWatchedRecipes = getLastWatchedRecipes;
+exports.getMyRecipes = getMyRecipes;
+exports.getFamilyRecipes = getFamilyRecipes;
