@@ -90,7 +90,7 @@ async function getRecipeFullData(recipe_id) {
 
 // get recipe preview data from spooncular response
 async function getRecipePreviewData(recipe_data) {
-  let { id, title, readyInMinutes, image, aggregateLikes, vegan, vegetarian, glutenFree, servings } = recipe_data;
+  let { id, title, readyInMinutes, image, aggregateLikes, vegan, glutenFree, servings } = recipe_data;
 
   return {
     id: id,
@@ -99,11 +99,8 @@ async function getRecipePreviewData(recipe_data) {
     image: image,
     popularity: aggregateLikes,
     vegan: vegan,
-    vegetarian: vegetarian,
     glutenFree: glutenFree,
     servings: servings
-
-
   }
 }
 

@@ -32,22 +32,8 @@ router.post('/favorites', async (req,res,next) => {
     } catch(error){
     next(error);
   }
-})
+});
 
-/**
- *  this path gets body eith recipe detalis and save this recipe in the list of the logged-in user
- * */ 
-router.post('/AddRecipe' , async (req,res,next) => {
-  try{
-    const user_id = req.session.user_id;
-    await user_utils.AddRecipe(user_id,req.body);
-    res.status(200).send("The Recipe successfully saved as favorite");
-    } catch(error){
-    next(error);
-  }
-})
-
-  
 /**
  * This path returns the favorites recipes that were saved by the logged-in user
  */
@@ -63,6 +49,19 @@ router.get('/favorites', async (req,res,next) => {
     res.status(200).send(results);
   } catch(error){
     next(error); 
+  }
+});
+
+/**
+ *  this path gets body eith recipe detalis and save this recipe in the list of the logged-in user
+ * */ 
+router.post('/addRecipe' , async (req,res,next) => {
+  try{
+    const user_id = req.session.user_id;
+    await user_utils.AddRecipe(user_id,req.body);
+    res.status(200).send("The Recipe successfully saved as favorite");
+    } catch(error){
+    next(error);
   }
 });
 

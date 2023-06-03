@@ -15,7 +15,7 @@ router.get("/getRecipeFullData/:recipeId", async (req, res, next) => {
 });
 
 //route for getting recipes, before we send requests to spooncular we check if the request is being forwared properly so we wont waste cradintels on spooncular
-router.get("/searchRecipes", async (req, res, next) => {
+router.get("/searchForRecepie", async (req, res, next) => {
   try {
     const{query, diet, cuisine, intolerance, number} = req.query;
     if(!query && !diet && !cuisine && !intolerance){
