@@ -2,9 +2,14 @@ var express = require("express");
 var router = express.Router();
 const recipes_utils = require("./utils/recipes_utils");
 
+/**
+ * test route
+ */
 router.get("/", (req, res) => res.send("im here"));
 
-
+/**
+ * This path gets recipe id and returns the recipe's full data
+ */
 router.get("/getRecipeFullData/:recipeId", async (req, res, next) => {
   try {
     const recipe = await recipes_utils.getRecipeFullData(req.params.recipeId);
@@ -14,6 +19,9 @@ router.get("/getRecipeFullData/:recipeId", async (req, res, next) => {
   }
 });
 
+/**
+ * This path returns a list of recipes that the user searched by query
+ */
 //route for getting recipes, before we send requests to spooncular we check if the request is being forwared properly so we wont waste cradintels on spooncular
 router.get("/searchForRecepie", async (req, res, next) => {
   try {
@@ -44,7 +52,9 @@ router.get("/searchForRecepie", async (req, res, next) => {
   }
 });
 
-// route for getting 3 random recipes
+/**
+ * This path returns 3 random recipes
+ */
 router.get("/getRandoms", async (req, res, next) => {
   try {
     const random_recipe = await recipes_utils.getRandomRecipe();

@@ -40,11 +40,9 @@ router.post('/favorites', async (req,res,next) => {
 router.get('/favorites', async (req,res,next) => {
   try{
     const user_id = req.session.user_id;
-    // let favorite_recipes = {};
     const recipes_id = await user_utils.getFavoriteRecipes(user_id);
     let recipes_id_array = [];
     recipes_id.map((element) => recipes_id_array.push(element.recipe_id)); //extracting the recipe ids into array
-    // const results = await recipe_utils.getRecipeDetails(recipes_id_array);
     const results = await Promise.all(recipes_id_array.map((element) => recipe_utils.getRecipeDetails(element)));
     res.status(200).send(results);
   } catch(error){
@@ -53,7 +51,7 @@ router.get('/favorites', async (req,res,next) => {
 });
 
 /**
- *  this path gets body eith recipe detalis and save this recipe in the list of the logged-in user
+ *  this path gets body with recipe detalis and save this recipe in the list of the logged-in user
  * */ 
 router.post('/addRecipe' , async (req,res,next) => {
   try{
@@ -65,10 +63,12 @@ router.post('/addRecipe' , async (req,res,next) => {
   }
 });
 
+/**
+ * This path returns the recipes that were saved by the logged-in user
+ */
 router.get('/myRecipes', async (req,res,next) => {
   try{
     const user_id = req.session.user_id;
-    // let viewed_recipes = {};
     const recipes_id = await user_utils.getMyRecipes(user_id);
     let recipes_id_array = [];
     recipes_id.map((element) => recipes_id_array.push(element.recipe_id)); //extracting the recipe ids into array
@@ -82,7 +82,6 @@ router.get('/myRecipes', async (req,res,next) => {
 router.get('/myFamilyRecipes', async (req,res,next) => {
   try{
     const user_id = req.session.user_id;
-    // let viewed_recipes = {};
     const recipes_id = await user_utils.getFamilyRecipes(user_id);
     let recipes_id_array = [];
     recipes_id.map((element) => recipes_id_array.push(element.recipe_id)); //extracting the recipe ids into array
@@ -99,7 +98,6 @@ router.get('/myFamilyRecipes', async (req,res,next) => {
 router.get('/lastWatched', async (req,res,next) => {
   try{
     const user_id = req.session.user_id;
-    // let viewed_recipes = {};
     const recipes_id = await user_utils.getLastWatchedRecipes(user_id);
     let recipes_id_array = [];
     recipes_id.map((element) => recipes_id_array.push(element.recipe_id)); //extracting the recipe ids into array

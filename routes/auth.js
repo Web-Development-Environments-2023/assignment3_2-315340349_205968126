@@ -4,6 +4,9 @@ const MySql = require("../routes/utils/MySql");
 const DButils = require("../routes/utils/DButils");
 const bcrypt = require("bcrypt");
 
+/**
+ * Authenticate all incoming requests by middleware
+ */
 router.post("/Register", async (req, res, next) => {
   try {
     // parameters exists
@@ -40,6 +43,10 @@ router.post("/Register", async (req, res, next) => {
   }
 });
 
+
+/**
+ * login user to the system
+ */
 router.post("/Login", async (req, res, next) => {
   try {
     // check that username exists
@@ -69,6 +76,9 @@ router.post("/Login", async (req, res, next) => {
   }
 });
 
+/**
+ * logout user from the system
+ */
 router.post("/Logout", function (req, res) {
   req.session.reset(); // reset the session info --> send cookie when  req.session == undefined!!
   res.send({ success: true, message: "logout succeeded" });
