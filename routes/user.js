@@ -110,4 +110,15 @@ router.get('/lastWatched', async (req,res,next) => {
   }
 });
 
+router.post('/lastWatched', async (req,res,next) => {
+  try{
+    const user_id = req.session.user_id;
+    const recipe_id = req.body.recipe_id;
+    await user_utils.markAsWatched(user_id,recipe_id);
+    res.status(200).send("The Recipe last watched successfully saved/updated");
+    }
+    catch(error){
+    next(error);
+  }
+});
 module.exports = router;

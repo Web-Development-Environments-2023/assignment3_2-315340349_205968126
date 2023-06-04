@@ -127,30 +127,34 @@ async function getRandomRecipe() {
   return random_recipes_info;
 }
 
-//searches for recipes by filters and query
+// searches for recipes by filters and query
 async function searchRecipes(filters) {
-  let recipes = await axios.get(`${api_domain}/complexSearch`, {
-    params: {
-      instructionsRequired: true,
-      apiKey: process.env.spooncular_apiKey,
-      query: filters.query,
-      cuisine: filters.cuisine,
-      diet: filters.diet,
-      intolerances: filters.intolerance,
-      number: filters.numOfRecipes,
-    }
-  });
+  const startTime = new Date().getTime(); // Start time in milliseconds
 
-  //gets the details of each recipe, since complexSearch dosent return all the details we are using getRecipeDetails for that.
-  let search_recipes = [];
-  for (let recipe of recipes.data.results) {
-    let { id } = recipe;
-    let recipeDetails = await getRecipeDetails(id);
-    search_recipes.push(await getRecipePreviewData(recipeDetails));
-  }
 
-  return search_recipes;
+    const recipes = await axios.get(`${api_domain}/complexSearch`, {
+      params: {
+        instructionsRequired: true,
+        apiKey: process.env.spooncular_apiKey,
+        query: filters.query,
+        cuisine: filters.cuisine,
+        diet: filters.diet,
+        intolerances: filters.intolerance,
+        number: filters.numOfRecipes,
+      }
+    });
+    const recipeIds = recipes.data.results.map(recipe => recipe.id).join(',');
+
+    const response = await axios.get(`${api_domain}/informationBulk`, {
+      params: {
+        apiKey: process.env.spooncular_apiKey,
+        ids: recipeIds,
+      }
+    });
+    const search_recipes = await Promise.all(response.data.map(recipe => getRecipePreviewData(recipe)));
+    return search_recipes
 }
+
 
 
 exports.getRecipeFullData = getRecipeFullData;

@@ -4,6 +4,18 @@ async function markAsFavorite(user_id, recipe_id){
     await DButils.execQuery(`insert into FavoriteRecipes values ('${user_id}',${recipe_id})`);
 }
 
+async function markAsWatched(user_id, recipe_id) {
+  const existingRow = await DButils.execQuery(`SELECT * FROM RecipeViews WHERE user_id = '${user_id}' AND recipe_id = ${recipe_id}`);
+  
+  if (existingRow.length > 0) {
+    // Row already exists, update the timestamp
+    await DButils.execQuery(`UPDATE RecipeViews SET viewed_at = CURRENT_TIMESTAMP WHERE user_id = '${user_id}' AND recipe_id = ${recipe_id}`);
+  } else {
+    // Row doesn't exist, insert a new row
+    await DButils.execQuery(`INSERT INTO RecipeViews VALUES ('${user_id}', ${recipe_id}, CURRENT_TIMESTAMP)`);
+  }
+}
+
 async function AddRecipe(user_id, body) {
     const recipe_info = body.recipeInfo;
     const recipe_ingredients = body.ingredients;
@@ -66,6 +78,7 @@ async function getFamilyRecipes(user_id) {
   return userRecipes;
 }
 
+exports.markAsWatched = markAsWatched;
 exports.AddRecipe = AddRecipe;
 exports.markAsFavorite = markAsFavorite;
 exports.getFavoriteRecipes = getFavoriteRecipes;
