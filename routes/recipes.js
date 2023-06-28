@@ -25,7 +25,7 @@ router.get("/getRecipeFullData/:recipeId", async (req, res, next) => {
 //route for getting recipes, before we send requests to spooncular we check if the request is being forwared properly so we wont waste cradintels on spooncular
 router.get("/searchForRecepie", async (req, res, next) => {
   try {
-    const{query, diet, cuisine, intolerance, number} = req.query;
+    const{query, diet, cuisine, intolerance, number} = req.body;
     if(!query && !diet && !cuisine && !intolerance){
       return res.status(400).send("You must enter at least one parameter");
     }
