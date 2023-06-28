@@ -1,57 +1,74 @@
+---
 openapi: 3.0.0
 info:
-  title: Recipes api
-  description: API for recipes project
-  version: 1.0.1
+  title: Grandma's Recipes Website API
+  description: This is an API for Grandma's Recipes website project
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.0
 servers:
 # local:
 - url: "http://127.0.0.1:3000"
 # remote:
-# - url: "http://132.72.65.211"
-  description: SwaggerHub API Auto Mocking hey
+# - url: "http://132.73.84.132"
 tags:
 - name: Auth
-  description: All authentication related routes
-- name: Users
-  description: All the user's personal app info
+  description: Operations regarding registration and login/logout
 - name: Recipes
-  description: All reciepes general info
+  description: Operations for getting, setting and uploading recipies
+- name: User
+  description: User operations
 paths:
   /register:
     post:
       tags:
       - Auth
       summary: A new user from the client is added to the server
-      description: A JSON object contains all the details about the new user.
+      description: A JSON object contains all the details about the user.
       requestBody:
         description: Inventory item to add
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/User'
+            example:
+              {
+                "username": "alex_wilson",
+                "firstname": "Alex",
+                "lastname": "Wilson",
+                "country": "United Kingdom",
+                "password": "mypassword",
+                "email": "alex.wilson@example.com"
+              }
         required: true
       responses:
         "201":
           description: A new user has been added
-        "400":
-          description: wrong input parameters
+        "401":
+          description: Wrong input parameters
+        "402":
+          description: Username taken
   /login:
     post:
       tags:
       - Auth
-      summary: Login an exist user
-      description: An exist user login to the system
+      summary: Lets the user log into the website using his credentials
       requestBody:
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/LoginScheme'
+            example:
+              {
+                "username": "alex_wilson",
+                "password": "mypassword"
+              }
         required: true
       responses:
         "200":
-          description: |
-            User was found in the DB and authenitcated successfully. The session ID is returned in a cookie named `session`.  You should include this cookie in subsequent requests
-          headers:
+          description: Successful login
+        headers:
             Set-Cookie:
               style: simple
               explode: false
@@ -59,7 +76,7 @@ paths:
                 type: string
                 example: session=87s97sdhgf279293f8w0e9
         "401":
-          description: Authentication failed
+          description: incorrect username or password
   /logout:
     post:
       tags:
@@ -68,6 +85,246 @@ paths:
       responses:
         "200":
           description: "the user has ben successfully logged out"
+  /recipes/getRandoms:
+    get:
+      tags:
+      - Recipes
+      summary: Retrives 3 random recipes
+      description: An array containing 3 Json object representing 3 recipes
+      responses:
+        "200":
+          description: 3 random recipes have been retrieved
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RecipePreview'
+              example:
+                - id: 659929
+                  title: "Shrimp and Cucumber Lettuce Wraps With Fresh Dill"
+                  readyInMinutes: 45
+                  image: "https://spoonacular.com/recipeImages/659929-556x370.jpg"
+                  popularity: 6
+                  vegan: false
+                  glutenFree: true
+                  servings: 8
+                - id: 661323
+                  title: "Spinach pie with home made dough"
+                  readyInMinutes: 45
+                  image: "https://spoonacular.com/recipeImages/661323-556x370.jpg"
+                  popularity: 2
+                  vegan: false
+                  glutenFree: false
+                  servings: 10
+                - id: 660835
+                  title: "Spaghetti With Pesto Trapanese"
+                  readyInMinutes: 45
+                  image: "https://spoonacular.com/recipeImages/660835-556x370.jpg"
+                  popularity: 4
+                  vegan: false
+                  glutenFree: false
+                  servings: 6
+        "403":
+          description: "Could not retrieve the recipes, please try again"
+  /recipes/{recipeId}:
+    get:
+      tags:
+        - Recipes
+      summary: Get recipe from the DB
+      description: Get one recipe by ID from the DB
+      parameters:
+        - name: recipeId
+          in: path
+          description: Recipe's ID
+          required: true
+          schema:
+            type: integer
+            example: 3
+      responses:
+        "200":
+          description: Recipe retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipePreview'
+              example:
+                {
+                  "id": 661342,
+                  "title": "Spinach Salad with Warm Bacon Mustard Dressing",
+                  "readyInMinutes": 45,
+                  "image": "https://spoonacular.com/recipeImages/661342-556x370.jpg",
+                  "popularity": 6,
+                  "vegan": false,
+                  "glutenFree": true,
+                  "servings": 4
+                }
+        "404":
+          description: Could not find the recipe, please try again
+  /recipes/searchForRecipe:
+    get:
+      tags:
+        - Recipes
+      summary: Get recipes from the DB
+      description: Retrieves recipes based on specified parameters from the DB
+      parameters:
+        - name: query
+          in: query
+          description: The search query for recipes
+          required: false
+          schema:
+            type: string
+        - name: diet
+          in: query
+          description: The desired diet for recipes
+          required: false
+          schema:
+            type: string
+        - name: cuisine
+          in: query
+          description: The desired cuisine for recipes
+          required: false
+          schema:
+            type: string
+        - name: intolerance
+          in: query
+          description: The desired intolerance for recipes
+          required: false
+          schema:
+            type: string
+        - name: number
+          in: query
+          description: The maximum number of recipes to retrieve (default 5)
+          required: false
+          schema:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: Recipes retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RecipeView'
+              example:
+                - id: 637876
+                  title: "Chicken 65"
+                  readyInMinutes: 45
+                  image: "https://spoonacular.com/recipeImages/637876-556x370.jpg"
+                  popularity: 6
+                  vegan: false
+                  glutenFree: true
+                  servings: 6
+                - id: 716342
+                  title: "Chicken Suya"
+                  readyInMinutes: 45
+                  image: "https://spoonacular.com/recipeImages/716342-556x370.jpg"
+                  popularity: 56
+                  vegan: false
+                  glutenFree: true
+                  servings: 1
+                - id: 638420
+                  title: "Chicken Wings"
+                  readyInMinutes: 45
+                  image: "https://spoonacular.com/recipeImages/638420-556x370.jpg"
+                  popularity: 2
+                  vegan: false
+                  glutenFree: true
+                  servings: 30
+                - id: 638308
+                  title: "Chicken Satay"
+                  readyInMinutes: 45
+                  image: "https://spoonacular.com/recipeImages/638308-556x370.jpg"
+                  popularity: 1
+                  vegan: false
+                  glutenFree: false
+                  servings: 4
+                - id: 638086
+                  title: "Chicken Fingers"
+                  readyInMinutes: 30
+                  image: "https://spoonacular.com/recipeImages/638086-556x370.jpg"
+                  popularity: 1
+                  vegan: false
+                  glutenFree: false
+                  servings: 2
+        "400":
+          description: Invalid request. You must enter at least one parameter
+        "401":
+          description: Could not find the recipe, please try again
+  /recipes/getRecipeFullData/{recipeId}:
+    get:
+      tags:
+        - Recipes
+      summary: Gets full data of a recipe from the DB
+      description: Get full data of one recipe by ID from the DB
+      parameters:
+        - name: recipeId
+          in: path
+          description: Recipe's ID
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Recipe retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipeDescription'
+              example:
+                recipeInfo:
+                  id: 637876
+                  title: Chicken 65
+                  readyInMinutes: 45
+                  image: https://spoonacular.com/recipeImages/637876-556x370.jpg
+                  popularity: 6
+                  vegan: false
+                  glutenFree: true
+                  servings: 6
+                ingredients:
+                  - ingredient: boneless chicken breast
+                    amount:
+                      metric:
+                        unit: grams
+                        value: 500
+                  - ingredient: chili powder
+                    amount:
+                      metric:
+                        unit: tsps
+                        value: 2
+                  - ingredient: ginger and garlic paste
+                    amount:
+                      metric:
+                        unit: Tbsps
+                        value: 4
+                  - ingredient: salt
+                    amount:
+                      metric:
+                        unit: Tbsps
+                        value: 0.5
+                  - ingredient: turmeric powder
+                    amount:
+                      metric:
+                        unit: tsps
+                        value: 0.25
+                  - ingredient: yogurt
+                    amount:
+                      metric:
+                        unit: Tbsps
+                        value: 4
+                steps:
+                  - stepNumber: 1
+                    instruction: Take a large bowl mix in the ginger and garlic paste, yogurt, red chilly powder, turmeric powder, and salt.
+                  - stepNumber: 2
+                    instruction: Mix well to form a smooth and thick paste, add the chicken pieces to the masala paste and marinade for 4 hours.
+                  - stepNumber: 3
+                    instruction: Heat enough oil in a pan to deep fry the marinaded chicken pieces. Deep fry the chicken pieces in batches till crisp and golden color. Note The taste of the Chicken 65 depends mainly on the amount of time it gets marinated in the masala, it is best to marinate the chicken pieces the day before.
+        "404":
+          description: Could not find the recipe. Please try again
   /users/favorites:
     get:
       tags:
@@ -76,15 +333,15 @@ paths:
       description: Get an array of recipes that were saved by a specific user
       responses:
         "200":
-          description: data about the user's favorites recipes returned
+          description: successfully retrived favorite recipes
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/RecipePreview'
+                  $ref: '#/components/schemas/RecepieView'
         "401":
-          description: user is not authorized
+          description: Could not retrieve the recipes, please try again
       security:
       - cookieAuth: []
     post:
@@ -108,41 +365,174 @@ paths:
         "401":
           description: user is not authorized
       security:
-      - cookieAuth: []
-  /recipes/{recipeId}:
-    get:
+      - cookieAuth: [] 
+  /users/addRecepie:
+    post:
       tags:
-      - Recipes
-      summary: Return preview details on recipe by his ID
-      description: Return preview details on recipe by his ID
-      parameters:
-      - name: recipeId
-        in: path
-        description: recipe's id
+      - Users
+      summary: logged user creating new recepie
+      description: the users' recepie adds to the recipes in the DB
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecepieDescription'
+            example:
+              {
+                "user_id": "12345",
+                "recipeInfo": {
+                    "image": "https://example.com/recipe-image.jpg",
+                    "name": "Delicious Recipe",
+                    "cooking_time": 60,
+                    "vegan": 1,
+                    "glutenFree": 0,
+                    "instructions": "Follow these instructions...",
+                    "servings": 4,
+                    "likes": 10
+                },
+                "ingredients": [
+                  {
+                  "name": "milk",
+                  "amount": {
+                    "metric": {
+                      "unit": "grams",
+                      "value": 100
+                    }
+                  }
+                  },
+                  {
+                  "name": "suger",
+                  "amount": {
+                    "metric": {
+                      "unit": "cups",
+                      "value": 2
+                      }
+                    }
+                  }
+                ],
+                "steps": [
+                  {
+                    "stepNumber": 1,
+                    "instruction": "Step 1: Do this..."
+                  },
+                  {
+                    "stepNumber": 2,
+                    "instruction": "Step 2: Do that..."
+                  }
+                ]
+              }
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/RecepieDescription'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RecepieDescription'
         required: true
-        style: simple
-        explode: false
-        schema:
-          type: integer
       responses:
         "200":
-          description: data about the recipe
+          description: new recipe has been created and saved
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RecipePreview'
+                type: array
+                items:
+                  $ref: '#/components/schemas/RecepieDescription'
+      security:
+      - cookieAuth: []
+  /users/myRecipes:
+    get:
+      tags:
+      - Users
+      summary: Return the recipes that were created by user
+      description: Get an array of recipes that were created by a specific user
+      responses:
+        "200":
+          description: successfully retrived created recipes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RecepiePreview'
+        "401":
+          description: Could not retrieve the recipes, please try again
+      security:
+      - cookieAuth: []
+  /users/myFamilyRecipes:
+    get:
+      tags:
+      - Users
+      summary: Return the user's family recipes
+      description: Get an array of user's family recipes 
+      responses:
+        "200":
+          description: successfully retrived family recipes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RecepiePreview'
+        "401":
+          description: Could not retrieve the recipes, please try again
+      security:
+      - cookieAuth: []
+  /users/lastWatched:
+    get:
+      tags:
+      - Users
+      summary: Gets 3 last watched recipes of the user
+      description: The user will be able to see his 3 last watched recipes
+      responses:
+        "200":
+          description: 3 last watched recipes by the user have been retrived
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RecepieView'
         "404":
-          description: recipeId is not exists
+          description: "Could not retrieve the recipes, please try again"
+      security:
+      - cookieAuth: []  
+    post:
+      tags:
+        - Users
+      summary: Mark recipe as last watched
+      description: Mark a recipe as the last watched by the user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                recipe_id:
+                  type: integer
+                  description: ID of the recipe
+              example:
+                recipe_id: 12345
+      responses:
+        "200":
+          description: The Recipe last watched successfully saved/updated
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: The Recipe last watched successfully saved/updated
+      security:
+        - cookieAuth: []
 components:
   schemas:
     User:
       type: object
       properties:
-        username:
+        userName:
           maxLength: 8
           minLength: 3
           type: string
-          description: username conatins between 3 to 8 letters only
+          description: username contains 3 to 8 letters only
           example: my_name
         firstname:
           type: string
@@ -151,7 +541,7 @@ components:
         lastname:
           type: string
           description: user's last name
-          example: my_last_name
+          example: levi
         country:
           type: string
           description: user's country
@@ -160,20 +550,15 @@ components:
           maxLength: 10
           minLength: 5
           type: string
-          description: password conatins between 5 to 10 chars, at least one of them
-            is a number and a special char
+          description: |
+            password contains between 5 to 10 chars, at least one of them is a number and special char
           format: password
-          example: my_name@12
+          example: my_name@55
         email:
           pattern: email
           type: string
           description: user's email
-          example: my_name12@gmail.com
-        # image-url:
-        #   pattern: URL
-        #   type: string
-        #   description: URL for the user's image
-        #   example: https://cloudinary.com/
+          example: my_name555@gmail.com
       description: Model containing user info
     LoginScheme:
       type: object
@@ -182,49 +567,60 @@ components:
           maxLength: 8
           minLength: 3
           type: string
-          description: username conatins letters only
+          description: username contains 3 to 8 letters only
         password:
           maxLength: 10
           minLength: 5
-          description: password conatins at least one number and one special char
+          type: password
+          description: |
+            password contains between 5 to 10 chars, at least one number and special char
           format: password
-      example:
-        username: my_name
-        password: my_name@12
+        example:
+          username: my_name
+          password: my_name@55
     RecipePreview:
       type: object
       properties:
         id:
-          type: integer
-          description: recipe identifier
-          example: 102
+          type: string
+          example: "209"
         title:
           type: string
-          description: recipe name
-          example: Simple Macaroni and Cheese
+          example: Potato carpaccio
+        coockingTime: 
+          type: integer
+          description: the time in minutes takes to make this recipe # DK
+          format: minutes
+          example: 20
         image:
           type: string
-          description: recipe image
           format: URL
-          example: https://spoonacular.com/recipeimages/655455-566x370.jpg
-        readyInMinutes:
-          type: integer
-          description: the time takes to make this recipe
-          example: 45
+          example: https://medias.hashulchan.co.il/www/uploads/2022/04/IMG_9569-750x500-1651048432.jpg
         popularity:
           type: integer
-          description: how many likes got this recipe
-          example: 5987
-        vegetarian:
-          type: boolean
-          description: indication if the recipe is vegetarian
-          example: false
+          description: how many likes this recipe got # DK
+          example: 302
         vegan:
           type: boolean
-          description: indication if the recipe is vegan
-          example: false
-        glutenFree:
+          description: does the recipe vegetarian
+          example: true
+        gutenFree:
           type: boolean
-          description: indication if the recipe is gluten free
+          description: does the recipe gluten free
           example: false
-  
+        description: Model containing a recpie description
+    RecepieDescription:
+      type: object
+      properties:
+        recepieDescription:
+          $ref: '#/components/schemas/RecipePreview'
+        ingridiants:
+          type: string
+          additionalProperties:
+            type: integer
+        instuctions:
+          type: string
+        # dishesNum:
+        #   type: integer
+        #   example: 4
+      description: Modal containing the recepie
