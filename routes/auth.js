@@ -5,7 +5,7 @@ const DButils = require("../routes/utils/DButils");
 const bcrypt = require("bcrypt");
 
 /**
- * Authenticate all incoming requests by middleware
+ * register user to the system
  */
 router.post("/Register", async (req, res, next) => {
   try {
