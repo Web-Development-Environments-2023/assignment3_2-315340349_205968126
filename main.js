@@ -28,28 +28,31 @@ app.use(express.static(path.join(__dirname, "public"))); //To serve static files
 //local:
 app.use(express.static(path.join(__dirname, "dist")));
 //remote:
-// app.use(express.static(path.join(__dirname, '../assignment-3-3-basic/dist')));
+// app.use(express.static(path.join(__dirname, '../assignment3_3-315340349_205968126/dist')));
 app.get("/",function(req,res)
 { 
   //remote: 
-  // res.sendFile(path.join(__dirname, '../assignment-3-3-basic/dist/index.html'));
+  // res.sendFile(path.join(__dirname, '../assignment3_3-315340349_205968126/dist/index.html'));
   //local:
   res.sendFile(__dirname+"/index.html");
 
 });
 
+/* enable CORS support in the Express application, allowing requests from any origin
+   and handling preflight requests. This configuration is useful when developing APIs
+    or web applications that need to be accessed by clients running on different domains.*/
 // app.use(cors());
 // app.options("*", cors());
 
 const corsConfig = {
-  origin: true,
-  credentials: true
+  origin: true,     // - Allows requests from any origin.
+  credentials: true // - Specifies that the server can receive and send credentials (such as cookies, authorization headers, or TLS client certificates) in cross-origin requests.
 };
 
 app.use(cors(corsConfig));
 app.options("*", cors(corsConfig));
 
-var port = process.env.PORT || "80"; //local=3000 remote=80
+var port = process.env.PORT || "3000"; //local=3000 remote=80
 //#endregion
 const user = require("./routes/user");
 const recipes = require("./routes/recipes");
@@ -82,12 +85,11 @@ app.use("/recipes", recipes);
 app.use(auth);
 
 // Default router
+// - handle errors that occur during the processing of incoming requests.
 app.use(function (err, req, res, next) {
   console.error(err);
   res.status(err.status || 500).send({ message: err.message, success: false });
 });
-
-
 
 const server = app.listen(port, () => {
   console.log(`Server listen on port ${port}`);
@@ -99,3 +101,4 @@ process.on("SIGINT", function () {
   }
   process.exit();
 });
+// module.exports = app
