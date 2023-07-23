@@ -34,6 +34,20 @@ router.post('/favorites', async (req,res,next) => {
   }
 });
 
+router.get('/favoriteandWatched/:recipeId', async (req,res,next) => {
+  try{
+    const user_id = 5; //TODO: req.session.user_id;
+    const recipe_id = req.params.recipeId;
+    const isFavorite = await user_utils.isFavorite(user_id,recipe_id);
+    const isWatched = await user_utils.isWatched(user_id,recipe_id);
+    const results = { isFavorite: isFavorite, isWatched: isWatched };
+    res.status(200).send(results);
+    }
+    catch(error){
+    next(error);
+  }
+});
+
 /**
  * This path returns the favorites recipes that were saved by the logged-in user
  */
@@ -131,4 +145,5 @@ router.post('/updateLastWatched', async (req,res,next) => {
     next(error);
   }
 });
+
 module.exports = router;

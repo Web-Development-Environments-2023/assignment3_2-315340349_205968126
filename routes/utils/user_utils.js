@@ -35,10 +35,14 @@ async function AddRecipe(user_id, body) {
   const recipe_info = body.recipeInfo;
   const recipe_ingredients = body.ingredients;
   const recipe_instructions = body.steps;
+  const vegan = recipe_info.vegan ? 1 : 0;
+  const vegetarian = recipe_info.vegetarian ? 1 : 0;
+  const glutenFree = recipe_info.glutenFree ? 1 : 0;
+  const popularity = parseInt(1)
 
-  await DButils.execQuery(`INSERT INTO Recipe (name, time_to_cook, vegan, gluten_free, instructions, number_of_dishes, popularity, image) VALUES 
-      ('${recipe_info.name}', '${recipe_info.cooking_time}', '${recipe_info.vegan}', '${recipe_info.glutenFree}', 
-      '${recipe_info.instructions}', '${recipe_info.servings}', '${recipe_info.likes}', '${recipe_info.image}')`);
+  await DButils.execQuery(`INSERT INTO Recipe (title,  readyInMinutes, vegetarian, vegan,  glutenFree, servings, popularity, image) VALUES 
+      ('${recipe_info.title}', '${recipe_info.readyInMinutes}', '${vegetarian}', '${vegan}', '${glutenFree}', 
+      '${recipe_info.servings}', '${popularity}', '${recipe_info.image}')`);
 
     const insertedRecipeId = (await DButils.execQuery('SELECT LAST_INSERT_ID() AS recipe_id'))[0].recipe_id;
 
@@ -106,6 +110,16 @@ async function getFamilyRecipes(user_id) {
   return userRecipes;
 }
 
+async function isFavorite(user_id, recipe_id) {
+  const favoriteRecipes = await DButils.execQuery(`SELECT * FROM favoriterecipes WHERE user_id = '${user_id}' AND recipe_id = '${recipe_id}'`);
+  return favoriteRecipes.length > 0;
+}
+
+async function isWatched(user_id, recipe_id) {
+  const watchedRecipes = await DButils.execQuery(`SELECT * FROM recipeviews WHERE user_id = '${user_id}' AND recipe_id = '${recipe_id}'`);
+  return watchedRecipes.length > 0;
+}
+
 async function getMyFullRecipe(recipe_id) {
   const recipeDetails = await DButils.execQuery(
     `SELECT * FROM Recipe WHERE recipe_id = '${recipe_id}'`
@@ -154,3 +168,5 @@ exports.getLastWatchedRecipes = getLastWatchedRecipes;
 exports.getMyRecipes = getMyRecipes;
 exports.getFamilyRecipes = getFamilyRecipes;
 exports.getMyFullRecipe = getMyFullRecipe;
+exports.isFavorite = isFavorite;
+exports.isWatched = isWatched;
