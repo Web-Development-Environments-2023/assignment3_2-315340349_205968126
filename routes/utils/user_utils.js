@@ -121,9 +121,13 @@ async function isWatched(user_id, recipe_id) {
 }
 
 async function getMyFullRecipe(recipe_id) {
-  const recipeDetails = await DButils.execQuery(
-    `SELECT * FROM Recipe WHERE recipe_id = '${recipe_id}'`
+  let recipeDetails = await DButils.execQuery(
+    `SELECT * FROM Recipe WHERE recipe_id = '${recipe_id}' LIMIT 1`
   );
+  if (recipeDetails.length == 0) {
+    return null;
+  }
+  recipeDetails = recipeDetails[0];
   const ingredients =
     await DButils.execQuery(`SELECT i.ingredient_name, r.unit, r.value FROM recipeingredients r
                               JOIN ingredients i ON r.ingredient_id = i.ingredient_id
